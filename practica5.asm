@@ -3,8 +3,12 @@
 section .data
 
 file db "./hello.txt", 0
+report db "./report.txt", 0
+msg db "Arqui 1 top! Assembler", 0
 
 len equ 1024
+
+textlen equ $ - msg
 
 section .bss 
 
@@ -29,6 +33,22 @@ _start:
     mov ecx, buffer 
     mov edx, len    
     int 80h     
+
+    ; Crear el archivo reporte
+    mov eax, 8
+    mov ebx, report
+    mov ecx, 0700
+    mov edx, len
+    int 80h
+
+    ; Escribir en el reporte
+    mov ebx, eax
+    mov eax, 4
+    mov ecx, msg
+    mov edx, textlen
+    int 80h
+    mov eax, 6
+    int 80h
 
     ; Imprimir el texto del buffer
     mov eax, 4  ; Instruccion imprimir en consola
