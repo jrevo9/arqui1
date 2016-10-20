@@ -22,15 +22,15 @@ header_txt: db 10,"Universidad de San Carlos de Guatemala"
                 db 10,"",10,0
 
 
-len equ 1024
+len equ 100
 headerlen equ $ - header_txt
 textlen equ $ - msg
 
 
 section .bss 
 
-buffer: resb 1024
-lpName:  resb 20  
+buffer: resb 100
+lpName:  resb 11  
      
 name_len equ    $ - lpName
 
@@ -47,24 +47,22 @@ _start:
     call PrintConsole   
 
     ; Leer input del usuario
-    mov ecx, msg2
-    mov edx, msg2_size
+    mov ecx, lpName
+    mov edx, name_len
     call ReadText
 
     ;Imprimir el texto ingresado por el usuario
-    mov ecx, msg2 ; Fuente 
-    mov edx, msg2_size   ; Tamaño
+    mov ecx, eax ; Fuente 
+    mov edx, 1   ; Tamaño
     call PrintConsole
-
-    call FreeMem
 
     ; Abrir el archivo
     mov eax, 5  ; Instruccion para abrir
-    mov ebx, [msg2] ; nombre del archivo
+    mov ebx, lpName ; nombre del archivo
     mov ecx, 0  ; 
     int 80h     
 
-    ; Guardare el contenido en el buffer
+    ; Guardar el contenido en el buffer
     mov eax, 3  
     mov ebx, eax
     mov ecx, buffer
@@ -76,6 +74,29 @@ _start:
     mov edx, len   ; Tamaño
     call PrintConsole 
 
+
+    ; Procesar contenido del buffer
+
+to_list:
+    mov ecx, buffer
+
+list_loop:
+    cmp byte[ecx], 3bh
+    je list_ret
+
+    cmp al, 2ch      
+    ;jne list_inc
+
+    mov eax, 4
+    mov ebx, 1
+    mov edx, 1            
+    int 80h  
+
+    inc ecx                 
+    jmp list_loop 
+
+list_ret:
+    
     ; Crear el archivo reporte
     mov eax, 8
     mov ebx, report
