@@ -30,6 +30,9 @@ textlen equ $ - msg
 section .bss 
 
 buffer: resb 1024
+lpName:  resb 20  
+     
+name_len equ    $ - lpName
 
 
 section .text
@@ -39,32 +42,25 @@ global _start
 _start:
 
     ; Imprimir Header
-    mov eax, 4  
-    mov ebx, 1   
     mov ecx, header_txt 
     mov edx, headerlen  
-    int 80h     
+    call PrintConsole   
 
     ; Leer input del usuario
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, file
-    mov edx, len
-    int 80h
+    mov ecx, msg2
+    mov edx, msg2_size
+    call ReadText
 
+    ;Imprimir el texto ingresado por el usuario
+    mov ecx, msg2 ; Fuente 
+    mov edx, msg2_size   ; Tamaño
+    call PrintConsole
 
+    call FreeMem
 
-    ; Imprimir el texto ingresado por el usuario
-    ;mov eax, 4  ; Instruccion imprimir en consola
-    ;mov ebx, 1  ; 
-    ;mov ecx, msg2 ; Fuente 
-    ;mov edx, msg2_size   ; Tamaño
-    ;int 80h     
-
-    
     ; Abrir el archivo
     mov eax, 5  ; Instruccion para abrir
-    mov ebx, msg2 ; nombre del archivo
+    mov ebx, [msg2] ; nombre del archivo
     mov ecx, 0  ; 
     int 80h     
 
@@ -76,11 +72,9 @@ _start:
     int 80h     
 
     ; Imprimir el texto del buffer
-    mov eax, 4  ; Instruccion imprimir en consola
-    mov ebx, 1  ; 
     mov ecx, buffer ; Fuente (buffer) 
     mov edx, len   ; Tamaño
-    int 80h  
+    call PrintConsole 
 
     ; Crear el archivo reporte
     mov eax, 8
@@ -105,3 +99,21 @@ _start:
     mov eax, 1  
     mov ebx, 0 
     int 80h
+
+ReadText:
+    mov     ebx, 0 
+    mov     eax, 3     
+    int     80h 
+    ret  
+
+PrintConsole:
+    mov eax, 4  ; Instruccion imprimir en consola
+    mov ebx, 1  
+    int 80h     
+    ret
+
+FreeMem:
+    mov ebx, 1
+    mov eax, 45
+    int 80h
+    ret
