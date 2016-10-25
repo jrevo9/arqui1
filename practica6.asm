@@ -2,12 +2,8 @@
 ;200915030
 section .data
 
-file db "hello.txt", 0
-report db "report.res", 0
-msg db " ", 0
-msg2 db "hello.txt", 0
-msg2_size equ $ - msg2
-current db 0
+calc_header db "Modo Calculadora activado", 0
+
 
 header_txt: db 10,"Universidad de San Carlos de Guatemala"
                 db 10,"Facultad Ingenieria"
@@ -19,14 +15,13 @@ header_txt: db 10,"Universidad de San Carlos de Guatemala"
                 db 10,"Practica 6"
                 db 10,""
                 db 10,""
-                db 10,"Ingrese Path al archivo:"
+                db 10,"Que desea realizar? 1. Calculadora 0. Salir"
                 db 10,"",10,0
 
 
 len equ 100
 headerlen equ $ - header_txt
-textlen equ $ - msg
-
+calclen equ $ - calc_header
 
 section .bss 
 
@@ -53,11 +48,25 @@ _start:
     call ReadText
 
     ;Imprimir el texto ingresado por el usuario
-    mov ecx, eax ; Fuente 
-    mov edx, 1   ; Tamaño
+    mov ecx, lpName ; Fuente 
+    mov edx, name_len  ; Tamaño
     call PrintConsole
 
-   
+    cmp ecx,1
+    je CalculatorMode
+    jmp _start
+
+    cmp ecx,0
+    je Exit
+
+CalculatorMode:
+
+    mov ecx, calc_header ; Fuente 
+    mov edx, calclen  ; Tamaño
+    call PrintConsole
+
+
+ Exit:  
     ; Instrucciones para cerrar el programa
     mov eax, 1  
     mov ebx, 0 
