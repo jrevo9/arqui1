@@ -1,5 +1,6 @@
 ;Jorge Alberto Rodriguez Mayorga
 ;200915030
+
 section .data
 
 header_txt db 10,"Universidad de San Carlos de Guatemala"
@@ -12,7 +13,7 @@ header_txt db 10,"Universidad de San Carlos de Guatemala"
                 db 10,"Practica 6"
                 db 10,""
                 db 10,""
-                db 10,"Que desea realizar? 1. Calculadora 0. Salir"
+                db 10,"Que desea realizar? 1.Calculadora 0.Salir"
                 db 10,"",10,0
 
 headerlen equ $ - header_txt
@@ -20,15 +21,27 @@ headerlen equ $ - header_txt
 calc_header db "Modo Calculadora activado",10,13,10,13,"Ingrese Opcion 1.Operaciones  2.Fibonacci",10,13
 calclen equ $ - calc_header
 ;
-operations_header db "Menu de operaciones",10,13,"Ingrese Numero: ",10,13
+operations_header db "Menu de operaciones",10,13,10,13
 opl equ $ - operations_header
 ;
-fibonacci_header db "Menu Fibinacci",10,13,"Ingrese Numero: ",10,13
+fibonacci_header db "Menu Fibinacci",10,13
 fibl equ $ - fibonacci_header
+;
+operator_msg db "Ingrese Operador: "
+oplen equ $ - operator_msg
+;
+second_msg db "Ingrese Numero: "
+secl equ $ - second_msg
+
+num1 db 0
+num2 db 0
+
+
 section .bss 
 
 menuInput:  resb 1 
 calcInput:  resb 2 
+operator: resb 1
 
 
 section .text
@@ -81,9 +94,35 @@ Home:
     jmp Next
     ret
 
+Comp_Operator:
+
+Init_Operations:
+     print second_msg, secl
+
+    read num1, 1
+
+    ; limpiar y esperar input
+    mov ah, 00
+    mov al, 03h
+    int 80h
+
+
 Operations:
-    print operations_header, opl
-    jmp Home
+    print operator_msg, oplen
+
+    read operator, 1
+
+    ; limpiar y esperar input
+    mov ah, 00
+    mov al, 03h
+    int 80h
+
+    print second_msg, secl
+
+    read num2, 2
+
+    jmp Operations
+
 
 Fibonacci:
     print fibonacci_header, fibl
@@ -108,7 +147,7 @@ CalculatorMode:
     mov al,  byte [calcInput]
 
     cmp al,'1'
-    je Operations
+    je Init_Operations
 
     cmp al,'2'
     je Fibonacci
