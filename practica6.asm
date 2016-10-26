@@ -32,16 +32,20 @@ oplen equ $ - operator_msg
 ;
 second_msg db "Ingrese Numero: "
 secl equ $ - second_msg
-
-num1 db 0
-num2 db 0
+suma  db "SUM",10,13
+resta db "RES",10,13
+multi db "MUL",10,13
+divi  db "DIV",10,13
 
 
 section .bss 
 
 menuInput:  resb 1 
 calcInput:  resb 2 
-operator: resb 1
+num1: resb 2
+num2: resb 2
+operator: resb 2
+
 
 
 section .text
@@ -94,32 +98,51 @@ Home:
     jmp Next
     ret
 
-Comp_Operator:
+SUM:
+    print suma, 3
+    jmp Operations
+
+RES:
+    print resta, 3
+    jmp Operations
+
+MUL:
+    print multi, 3
+    jmp Operations
+
+DIV:
+    print divi, 3
+    jmp Operations
 
 Init_Operations:
      print second_msg, secl
 
-    read num1, 1
-
-    ; limpiar y esperar input
-    mov ah, 00
-    mov al, 03h
-    int 80h
+    read num1, 2
 
 
 Operations:
     print operator_msg, oplen
 
-    read operator, 1
-
-    ; limpiar y esperar input
-    mov ah, 00
-    mov al, 03h
-    int 80h
+    read operator, 2
 
     print second_msg, secl
 
     read num2, 2
+
+    print num1, 2
+
+    print operator, 2
+
+    print num2, 2
+
+    cmp byte[operator], '+'
+    je SUM
+    cmp byte[operator],'-'
+    je RES
+    cmp byte[operator],'*'
+    je MUL
+    cmp byte[operator],'/'
+    je DIV
 
     jmp Operations
 
