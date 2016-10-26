@@ -17,9 +17,14 @@ header_txt db 10,"Universidad de San Carlos de Guatemala"
 
 headerlen equ $ - header_txt
 ;
-calc_header db "Modo Calculadora activado",10,13,
+calc_header db "Modo Calculadora activado",10,13,10,13,"Ingrese Opcion 1.Operaciones  2.Fibonacci",10,13
 calclen equ $ - calc_header
-
+;
+operations_header db "Menu de operaciones",10,13,"Ingrese Numero: ",10,13
+opl equ $ - operations_header
+;
+fibonacci_header db "Menu Fibinacci",10,13,"Ingrese Numero: ",10,13
+fibl equ $ - fibonacci_header
 section .bss 
 
 menuInput:  resb 1 
@@ -44,6 +49,15 @@ global _start
 
 %endmacro
 
+%macro read 2
+        mov eax, 3  
+        mov ebx, 0   
+        mov ecx, %1  
+        mov edx, %2  
+        int 80h  
+
+%endmacro
+
 _start:
     mov ah, 00
     mov al, 03h
@@ -55,20 +69,10 @@ _start:
 Home:
 
     ; Imprimir Header
-    ;mov eax, 4  ; Instruccion imprimir en consola
-    ;mov ebx, 1 
-    ;mov ecx, header_txt 
-    ;mov edx, headerlen  
-    ;int 80h
-
     print header_txt, headerlen
 
     ; Leer input del usuario
-    mov eax, 3 
-    mov ebx, 0
-    mov ecx, menuInput
-    mov edx, 1
-    int 80h 
+    read menuInput, 1
 
     mov al,  byte [menuInput]
 
@@ -77,34 +81,42 @@ Home:
     jmp Next
     ret
 
+Operations:
+    print operations_header, opl
+    jmp Home
+
+Fibonacci:
+    print fibonacci_header, fibl
+    jmp Home
+
+
 CalculatorMode:
     
-
     ; Imprimir Instruccion
-    mov eax, 4  ; Instruccion imprimir en consola
-    mov ebx, 1 
-    mov ecx, calc_header ; Fuente 
-    mov edx, calclen  ; Tamaño
-    int 80h  
+    print calc_header, calclen 
 
     ; Leer input del usuario 
-    mov eax, 3 ; Instruccion para leer de consola
-    mov ebx, 0 
-    mov ecx, calcInput ; Destino
-    mov edx, 2 ; Tamaño
-    int 80h 
+    read calcInput, 2
 
+    ; limpiar 
     mov ah, 00
     mov al, 03h
     int 80h
 
-    ;Imprimir el texto ingresado por el usuario
-    mov eax, 4  ; Instruccion imprimir en consola
-    mov ebx, 1 
-    mov ecx, calcInput ; Fuente 
-    mov edx, 2 ; Tamaño
-    int 80h 
+    ; Comparar operaciones o fibonnacci
 
+    mov al,  byte [calcInput]
+
+    cmp al,'1'
+    je Operations
+
+    cmp al,'2'
+    je Fibonacci
+
+    ;Imprimir el texto ingresado por el usuario
+    print calcInput, 2
+
+    ; Regresar al menu principal
     call Home
 
 Exit:  
