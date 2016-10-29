@@ -27,11 +27,14 @@ opl equ $ - operations_header
 fibonacci_header db "Menu Fibinacci",10,13
 fibl equ $ - fibonacci_header
 ;
-operator_msg db "Ingrese Operador: "
+operator_msg db 10,13,"Ingrese Operador: "
 oplen equ $ - operator_msg
 ;
 second_msg db "Ingrese Numero: "
 secl equ $ - second_msg
+;
+result db "Resultado: "
+reslen equ $ - result
 suma  db "SUM",10,13
 resta db "RES",10,13
 multi db "MUL",10,13
@@ -42,9 +45,11 @@ section .bss
 
 menuInput:  resb 1 
 calcInput:  resb 2 
-num1: resb 2
-num2: resb 2
-operator: resb 2
+num1: resb 50
+num2: resb 4
+operator: resb 1
+tmp : resb 1
+res : resb 32
 
 
 
@@ -98,52 +103,156 @@ Home:
     jmp Next
     ret
 
+ReadOP:
+    push edx
+    push ecx
+
+    read num1, 50
+
+    mov edx, eax
+    sub edx, 1
+    xor eax, eax
+    xor ecx, ecx
+
+    call ReadNumber
+
+    pop ecx
+    pop edx
+    ret
+
+ReadNumber:
+    cmp ecx, edx
+    jz FinishRead
+    push edx
+    xor edx, edx
+    xor bl, bl
+    mov edx, 10
+    mov bl, [num1 + ecx]
+    mov [tmp], bl
+    push ecx
+    mov ecx, dword[tmp]
+    sub ecx, '0'
+    mul edx
+    add eax, ecx
+    pop ecx
+    pop edx
+    add ecx, 1
+    call ReadNumber
+
+FinishRead:
+    ret
+
+printRes:
+    push edx
+    push ecx
+    push ebx
+    push eax
+
+    print res, 1
+
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+    ret
+
+
+dividir:
+    mov ebx, 10
+    div ebx
+    ret
+
 SUM:
-    print suma, 3
+    print second_msg, secl
+    call ReadOP
+    xor edx,edx
+    mov edx, eax
+    pop eax
+    add eax, edx
+    push eax
+    call print_digit
     jmp Operations
 
+print_digit:
+    push edx
+    push ecx
+    push ebx
+    push eax
+
+    cmp eax, 0
+    jz stop
+    xor ebx,ebx
+    xor edx, edx 
+    mov ebx, 0Ah
+    div ebx
+    push edx
+    call print_digit
+    pop edx
+    add edx, '0'
+    mov[res], edx
+    call printRes
+    
+stop:
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+    ret
+    ;jmp Operations
+
 RES:
-    print resta, 3
+    print resta, 4
     jmp Operations
 
 MUL:
-    print multi, 3
+    mov eax, [num1]
+    sub eax, '0' 
+    mul ebx   
+    add eax, '0' 
+    mov [num1], eax
+    print result, reslen
+    ;xor eax, eax
+    ;mov [num1], eax
+    print num1, 1
+    ;call print_digit
     jmp Operations
 
 DIV:
-    print divi, 3
+    mov eax, [num1]
+    sub eax, '0' 
+    mov ebx, [num2]
+    sub ebx, '0' 
+    div ebx   
+    add eax, '0' 
+    mov [num1], eax
+    print result, reslen
+    ;xor eax, eax
+    ;mov [num1], eax
+    print num1, 1
+    ;call print_digit
+    jmp Operations
     jmp Operations
 
 Init_Operations:
-     print second_msg, secl
-
-    read num1, 2
-
+    print second_msg, secl
+    call ReadOP
+    ;call print_digit
 
 Operations:
+    push eax
     print operator_msg, oplen
-
+  
     read operator, 2
-
-    print second_msg, secl
-
-    read num2, 2
-
-    print num1, 2
-
-    print operator, 2
-
-    print num2, 2
 
     cmp byte[operator], '+'
     je SUM
+    pop eax
     cmp byte[operator],'-'
     je RES
     cmp byte[operator],'*'
     je MUL
     cmp byte[operator],'/'
     je DIV
-
     jmp Operations
 
 
