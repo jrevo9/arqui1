@@ -24,7 +24,7 @@ calclen equ $ - calc_header
 operations_header db "Menu de operaciones",10,13,10,13,0
 opl equ $ - operations_header
 ;
-fibonacci_header db "Menu Fibinacci",10,13,0
+fibonacci_header db "Ingrese Numero a calcular Fibonacci",10,13,0
 fibl equ $ - fibonacci_header
 ;
 operator_msg db 10,13,"Ingrese Operador: ",0
@@ -35,6 +35,13 @@ secl equ $ - second_msg
 ;
 result db "Resultado: ",0
 reslen equ $ - result
+;
+fibo_msg: db "Fibonacci de ",0
+msg_len  equ $-fibo_msg
+;
+fibo_equals: db " = ",0
+eclen  equ $-fibo_equals
+;
 suma  db "SUM",10,13
 resta db "RES",10,13
 multi db "MUL",10,13
@@ -44,14 +51,15 @@ plus : db 2Bh
 star: db 2Ah
 dash: db 2Dh
 slash: db 2Fh
-
+space : db 20h
+equal : db 3Dh
 
 section .bss 
 
 menuInput:  resb 2 
 calcInput:  resb 2 
 num1 resb 51
-num2: resb 4
+num2: resb 100
 resulta: resb 1
 tmp : resb 1
 res : resb 32
@@ -139,6 +147,7 @@ _get_Operand:
     cmp dl, [slash]
     jz cll_div
 _end_calc:
+
 _show_result:
    push eax
    print result, reslen
@@ -296,7 +305,135 @@ _finish_read:
 
 Fibonacci:
     print fibonacci_header, fibl
+    read num1,50
+
+    mov edx, eax
+    sub edx, 0x1
+    xor eax, eax
+    xor ecx, ecx
+
+    call _read_number
+
+    mov ecx, eax 
+
+
+    call _fibonacci   
+
     jmp Home
 
+_fibonacci:
+    cmp ecx, 0
+    jz _ifzero   
+    cmp ecx, 1
+    jz _ifone    
+    push ecx
+    dec ecx      
+    call _fibonacci  
+    pop ecx
+    mov eax, edx  
+    add edx, ebx  
+    push edx
+    mov edx, ecx
+    call print_msg_f
+    call _print_fibonacci
+    call _print_equals
+    mov edx, ebx
+    call _print_fibonacci
+    mov [resulta],dword 0x2B
+    call _print_resulta
+    mov edx,  eax
+    call _print_fibonacci
+    mov [resulta],dword 0x3D
+    call _print_resulta
+    pop edx 
+    mov ebx, eax  ; pass to ebx  old  edx, to be teh oldest number
+    call _print_fibonacci  ; prints edx 
+    mov [resulta], dword 0xA
+    call _print_resulta
+ret
+_ifzero:
+    mov edx, 0
+    call print_msg_f
+    call _print_fibonacci
+    call _print_equals
+    call _print_fibonacci
+   ret
+_ifone:
+    mov edx, 0      ;stablish first value of secuence f(0)= 0
+    mov ebx, 0
+    call print_msg_f
+    call _print_fibonacci
+    call _print_equals
+    call _print_fibonacci ; prints f(0)
+    mov [resulta], dword 0xA
+    call _print_resulta
+    mov edx, 1      ;stablish second value of secuence f(1)=1
+    call print_msg_f
+    call _print_fibonacci
+    call _print_equals
+    call _print_fibonacci ; prints f(1)
+
+    mov [resulta], dword 0xA
+    call _print_resulta
+ret 
+
+_print_fibonacci:
+   push edx
+   push ecx
+   push ebx
+   push eax
+   mov eax, 0x0
+   mov eax, edx
+   cmp eax,0x0
+   jz first_z
+   call _print_number
+   jmp print_space
+first_z: 
+    mov [resulta], dword '0'
+    call _print_resulta
+print_space:   
+    mov eax,4
+    push dword 1
+    push dword space
+    push dword 1
+    sub esp,4
+    int 0x80
+
+    add esp, 16 ; 4 bytes extra of mac os 
+    pop eax 
+    pop ebx   ; return all  vaulues to original state
+    pop ecx
+    pop edx
+ret
+
+print_msg_f:
+    push edx
+    push ecx
+    push ebx
+    push eax
+
+    print fibo_msg, msg_len
+
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+ ret
+
+_print_equals:
+    push edx
+    push ecx
+    push ebx
+    push eax
+
+
+    print fibo_equals, eclen
+
+
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+ ret
 
 
