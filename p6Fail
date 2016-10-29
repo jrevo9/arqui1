@@ -24,7 +24,7 @@ calclen equ $ - calc_header
 operations_header db "Menu de operaciones",10,13,10,13,0
 opl equ $ - operations_header
 ;
-fibonacci_header db "Menu Fibinacci",10,13,0
+fibonacci_header db "Menu Fibonacci",10,13,0
 fibl equ $ - fibonacci_header
 ;
 operator_msg db 10,13,"Ingrese Operador: ",0
@@ -38,12 +38,8 @@ reslen equ $ - result
 suma  db "SUM",10,13
 resta db "RES",10,13
 multi db "MUL",10,13
+divi  db "DIV",10,13
 
-nln: db 0xA
-plus : db 2Bh
-star: db 2Ah
-dash: db 2Dh
-slash: db 2Fh
 
 
 section .bss 
@@ -52,7 +48,7 @@ menuInput:  resb 2
 calcInput:  resb 2 
 num1 resb 51
 num2: resb 4
-resulta: resb 1
+operator: resb 1
 tmp : resb 1
 res : resb 32
 tstResult : resb 32
@@ -113,186 +109,192 @@ CalculatorMode:
     read calcInput, 2          ; Leer input del usuario 
     mov al,  byte [calcInput]  ; Comparar operaciones o fibonnacci
     cmp al,'1'
-    je Calculator
+    je Init_Operations
     cmp al,'2'
     je Fibonacci
     jmp Home
 
+cll_Init:
+    call Init_Operations
+    jmp CalculatorMode
 
-Calculator:
+Init_Operations:
     print second_msg, secl
+    call ReadOP
+    call print_digit
+    call Operations
+    ;push eax
     
-    call _read_num ; stores in eax first operand
+    ;pop eax
+    
+ret
 
-_get_Operand:
-    push eax    
+Operations:
+    push eax
     print operator_msg, oplen
-    read resulta, 2  
-    pop eax       
-    mov dl, [resulta] ; use dl to compare  operation simbol
-    cmp dl, 2Bh ;+
-    jz  cll_sum 
-    cmp dl, 2Ah ;-
-    jz cll_mult
-    cmp dl, [dash]
-    jz cll_sub
-    cmp dl, [slash]
-    jz cll_div
-_end_calc:
-_show_result:
-   push eax
-   print result, reslen
-   pop eax
-   ;mov edx, eax
-   call _print_number
-   call  _print_ln
-   jmp _get_Operand
+    read operator, 2
+    pop eax
+    cmp byte[operator], '+'
+    jz cll_SUM
+    cmp byte[operator],'-'
+    jz cll_RES
+    cmp byte[operator],'*'
+    jz cll_MUL
+    cmp byte[operator],'/'
+    jz cll_DIV
 
-cll_sum : 
-   call _addition
-   jmp _show_result 
-cll_mult : 
-   call _multip
-   jmp _show_result
-cll_sub : 
-   call _substraction
-   jmp _show_result
-cll_div : 
-   call _divide
-   jmp _show_result
+    Call Exit
 
-_read_num:
-    push edx  ; save edx previus value
-    push ecx  ; save ecx previus value
-     
-    read num1,100
+cll_SUM:
+    call SUM
+    jmp EndOp
 
-    mov edx, eax     ;count of bytes readed
-    sub edx, 0x1     ; remove extra byte readed
-    xor eax, eax     ; clean eax
-    xor ecx, ecx     ; clean ecx
-    call _read_number
+cll_RES:
+    call RES
+    jmp EndOp
 
-    pop ecx
-    pop edx
-  ret
+cll_MUL:
+    call MUL
+    jmp EndOp
 
-_addition:
+cll_DIV:
+    call DIV
+    jmp EndOp
+
+
+
+SUM:
     push eax
     print second_msg, secl
-    call _read_num
+    call ReadOP
+    call print_digit
+    xor edx,edx
     mov edx, eax
     pop eax
     add eax, edx
- ret
+ret
 
-_multip:
+RES:
     push eax
     print second_msg, secl
-    call _read_num
+    call ReadOP
+    mov edx, eax
+    pop eax
+    sub eax, edx
+
+ret
+
+MUL:
+    push eax
+    print second_msg, secl
+    call ReadOP
     mov edx, eax
     pop eax
     mul edx
-     
- ret
 
-
-_substraction:
-     push eax
-     print second_msg, secl
-     call _read_num
-     mov edx, eax
-     pop eax
-     sub eax, edx
- ret
-
-
-_divide:
-     push eax
-     print second_msg, secl
-     call _read_num
-     xor edx,edx 
-     mov ecx, eax
-     xor eax, eax
-     pop eax
-     div ecx
- ret
-
-
-_print_resulta:
-        push edx
-        push ecx
-        push ebx
-        push eax
-
-        print resulta, 1
-
-        pop eax
-        pop ebx
-        pop ecx
-        pop edx
- ret
-
-_print_number:
-        push edx
-        push ecx
-        push ebx
-        push eax
-
-        cmp eax, 0x0
-
-        jz _ended
-
-        xor  edx, edx
-        xor  ecx, ecx
-        mov  ecx, 0xA
-        div ecx
-        push edx
-        call _print_number
-        pop edx
-        add edx, 0x30
-        mov [resulta], edx
-        call _print_resulta
-_ended:     
-            pop eax
-            pop ebx
-            pop ecx
-            pop edx
 ret
 
-_print_ln:
+DIV:
+    push eax
+    print second_msg, secl
+    call ReadOP
+    xor edx,edx 
+    mov ecx, eax
+    xor eax, eax
+    pop eax
+    div ecx
+
+ret
+
+EndOp:
+    push eax
+    print result, reslen
+    pop eax
+    call print_digit
+    jmp Operations
+
+
+ReadOP:
+    push edx
+    push ecx
+
+    read num1, 50
+
+    mov edx, eax
+    sub edx, 0x1
+    xor eax, eax
+    xor ecx, ecx
+
+    call ReadNumber
+
+    pop ecx
+    pop edx
+ret
+
+ReadNumber:
+    cmp ecx, edx
+    jz FinishRead
+    push edx
+    xor edx, edx
+    xor bl, bl
+    mov edx, 0xA
+    mov bl, [num1 + ecx]
+    mov [tmp], bl
+    push ecx
+    mov ecx, dword[tmp]
+    sub ecx, 0x30
+    mul edx
+    add eax, ecx
+    pop ecx
+    pop edx
+    add ecx, 0x1
+    call ReadNumber
+FinishRead:
+
+ret
+
+printRes:
     push edx
     push ecx
     push ebx
     push eax
-    print nln,0x1
+
+    print res, 1
+
     pop eax
     pop ebx
     pop ecx
     pop edx
 ret
 
-_read_number:
-    cmp ecx,edx         
-    jz _finish_read 
-    push edx        
-    xor edx, edx    
-    xor bl, bl      
-    mov edx, 0xA    
-    mov bl, [num1 + ecx]    
-    mov [tmp], bl      
-    push ecx            
-    mov ecx, dword [tmp] 
-    sub ecx, 0x30       
-    mul edx             
-    add eax, ecx        
-    pop ecx             
-    pop edx             
-    add ecx, 0x1        
-    call _read_number 
-_finish_read:
- 
- ret
+print_digit:
+    push edx
+    push ecx
+    push ebx
+    push eax
+
+    cmp eax, 0x0
+    jz stop
+
+    xor edx,edx
+    xor ecx, ecx 
+    mov ecx, 0Ah
+    div ecx
+    push edx
+    call print_digit
+    pop edx
+    add edx, 48
+    mov[res], edx
+    call printRes
+    
+stop:
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+ret
+
+
 
 Fibonacci:
     print fibonacci_header, fibl
