@@ -271,7 +271,7 @@ _compare_user:
 
  _found_comma:
     mov ecx, 0
-    add eax, 7
+    add eax, 1
     cmp dl, 0
     je _foundUser
     jmp _compare
@@ -289,7 +289,8 @@ _foundUser:
     xor bl, bl
     mov bl, [login]
     cmp bl, 1            ; 
-    je _user_notCreated    
+    je _user_notCreated 
+    mov ecx, 0   
     cmp bl, 0            ; Comparar si el password es el mismo <Hacer Login>
     je _validatePass
     pop ebx
@@ -346,16 +347,7 @@ _user_notCreated:
 
 
 _validate_pass_syntax:
-    ;push edx
-    ;push ecx
-    ;push ebx
-    ;push eax
-    ;print pass, 5
-    ;pop eax
-    ;pop ebx
-    ;pop ecx
-    ;pop edx
-    
+
     cmp ecx, 5
     jz _exit_validation
 
@@ -379,35 +371,68 @@ _error_on_syntax:
     print error3, error3_len
     jmp _register
 
+_error_on_syntax_login:
+    print error3, error3_len
+    jmp _login
 
 
 _validatePass:
-    ;cmp ecx, 5
+    cmp ecx, 5
+    jz _finish_validation
 
-    ;mov bl, [pass + ecx]
-    ;mov [pas], bl
-    ;xor bl, bl
+    xor bl, bl
+    mov bl, [buffer + eax]
+    mov [buf], bl
+    xor bl, bl
 
-    ;mov bl, [pas]
+    mov bl, [pass + ecx]
+    mov [pas], bl
+    xor bl, bl
+
+    mov bl, [pas]
 
     ;push edx
     ;push ecx
     ;push ebx
     ;push eax
     ;print buf, 1
-    ;print us, 1
+    ;print pas, 1
     ;pop eax
     ;pop ebx
     ;pop ecx
     ;pop edx
+    add bl, '0'
+    cmp bl, 0
+    jl _error_on_syntax_login
+    cmp bl, 9
+    jb _error_on_syntax_login
 
-    ;cmp bl, ';'
-    ;je _found_dot
-    ;add eax, 1
-    ;add ecx, 1
-    ;call _validatePass
-    ;jmp _secondary_menu
+    mov bl, [pas]
 
+    cmp bl, [buf]
+    jnz _wrong_pass
+    jmp _compare_pass
+ret
+
+_compare_pass:
+    add eax, 0x1
+    add ecx, 0x1
+    mov dl, 1
+    jmp _validatePass
+
+ret
+
+_finish_validation:
+    cmp dl, 1
+    jz _secondary_menu
+    jmp _login
+
+_wrong_pass:
+    mov ecx, 0
+    mov eax, 0
+    mov dl, 0 
+    print error2, error2_len
+    jmp _login
 
 _secondary_menu:
 print alert1, alert1_len 
