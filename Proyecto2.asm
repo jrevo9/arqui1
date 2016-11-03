@@ -5,12 +5,17 @@ section .data
 header_txt: db 10,"Ingrese Opción",10,13,
                 db 10,"1. Inicio de Sesión",10,13
                 db    "2. Registrar Usuario",10,13,0
+                db    "3. Salir",10,13,0
 
 headerlen equ $ - header_txt
 userTXT db "Usuario: "
 userTXT_len equ $ - userTXT
 passTXT db "Contraseña: "
 passTXT_len equ $ - passTXT
+
+secmenu db "Menu Secundario ",10,13,10,13
+secmenu_len equ $ - secmenu
+
 path db "users.txt",0
 len equ $ - path
 error1 db "ERROR!! Usuario NO encontrado.",10,13
@@ -19,6 +24,16 @@ error2 db "ERROR!! Contraseña incorrecta.",10,13
 error2_len equ $ - error2
 error3 db "WUJUUUU!! Usuario encontrado.",10,13
 error3_len equ $ - error3
+error4 db "Error! El usuario ya existe.",10,13
+error4_len equ $ - error4
+error5 db "WUJUUUU!! Usuario encontrado.",10,13
+error5_len equ $ - error5
+
+alert1 db "Sesión Iniciada Exitosamente!",10,13
+alert1_len equ $ - alert1
+alert2 db "Usuario Creado con Exito!",10,13
+alert2_len equ $ - alert2
+
 tmpUser db ""
 comma : db 2ch
 dotcom : db 3bh
@@ -34,6 +49,7 @@ pass resb 6
 buf resb 1
 us resb 1
 pas resb 1
+login resb 1 ; 0 login 1 register
 
 
 
@@ -90,6 +106,10 @@ _initApp:
     jz  _login
     cmp dl, '2'
     jz  _register
+
+    cmp dl, '3'
+    jz  _exit
+
     call _initApp
 
 ret
@@ -100,8 +120,11 @@ _login:
     
     print passTXT, passTXT_len
     read pass, 6
+
+    mov bl, 0
+    mov [login], bl
     call _validateUser
-    call _validatePass
+    ;call _validatePass
 
 ret
 
@@ -112,10 +135,10 @@ _register:
     print passTXT, passTXT_len
     read pass, 6
 
-
+    mov bl, 1
+    mov [login], bl
     call _validateUser
 
-    call _registerUser
     call _initApp
 
 ret
@@ -162,6 +185,8 @@ _registerUser:
     mov eax, 6  
     int 80h     
 
+    jmp _userCreated
+
 ret
 
 
@@ -203,16 +228,16 @@ _compare:
     cmp bl, 0x0A
     je _finish_compare
 
-    push edx
-    push ecx
-    push ebx
-    push eax
+    ;push edx
+    ;push ecx
+    ;push ebx
+    ;push eax
     ;print buf, 1
     ;print us, 1
-    pop eax
-    pop ebx
-    pop ecx
-    pop edx
+    ;pop eax
+    ;pop ebx
+    ;pop ecx
+    ;pop edx
 
     cmp bl, ','
     je _found_comma
@@ -263,33 +288,70 @@ _foundUser:
     push ecx
     push ebx
     push eax
-    print error3, error3_len
+    xor bl, bl
+    mov bl, [login]
+    cmp bl, 1
+    je _user_notCreated
+    print alert1, alert1_len
     pop eax
     pop ebx
     pop ecx
     pop edx
     
-    jmp _login
+    jmp _secondary_menu
 
 _notfoundUser:
     push edx
     push ecx
     push ebx
     push eax
+    xor bl, bl
+    mov bl, [login]
+    cmp bl, 1
+    je _registerUser
     print error1, error1_len
     pop eax
     pop ebx
     pop ecx
     pop edx 
 
-    jmp _login
+    jmp _initApp
 
+_userCreated:
+    push edx
+    push ecx
+    push ebx
+    push eax
+    print alert2, alert2_len
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+    
+    jmp _initApp
+
+_user_notCreated:
+    push edx
+    push ecx
+    push ebx
+    push eax
+    print error4, error4_len
+    pop eax
+    pop ebx
+    pop ecx
+    pop edx
+    
+    jmp _register
 
 
 _validatePass:
     ;print ebx, 1
 
 ret
+
+_secondary_menu:
+print secmenu, secmenu_len
+
 
 _exit:  
     mov eax, 1  
