@@ -22,11 +22,11 @@ error1 db "ERROR!! Usuario NO encontrado.",10,13
 error1_len equ $ - error1
 error2 db "ERROR!! Contraseña incorrecta.",10,13
 error2_len equ $ - error2
-error3 db "WUJUUUU!! Usuario encontrado.",10,13
+error3 db "Error!! La contraseña solo pueden ser numeros.",10,13
 error3_len equ $ - error3
 error4 db "Error! El usuario ya existe.",10,13
 error4_len equ $ - error4
-error5 db "WUJUUUU!! Usuario encontrado.",10,13
+error5 db "validating password syntax",10,13
 error5_len equ $ - error5
 
 alert1 db "Sesión Iniciada Exitosamente!",10,13
@@ -271,8 +271,6 @@ _compare_user:
 
  _found_comma:
     mov ecx, 0
-    cmp bl, 1
-    je _validatePass
     add eax, 7
     cmp dl, 0
     je _foundUser
@@ -290,9 +288,12 @@ _foundUser:
     push eax
     xor bl, bl
     mov bl, [login]
-    cmp bl, 1
-    je _user_notCreated
-    print alert1, alert1_len
+    cmp bl, 1            ; 
+    je _user_notCreated    
+    cmp bl, 0            ; Comparar si el password es el mismo <Hacer Login>
+    je _validatePass
+    pop ebx
+    
     pop eax
     pop ebx
     pop ecx
@@ -306,9 +307,9 @@ _notfoundUser:
     push ebx
     push eax
     xor bl, bl
-    mov bl, [login]
-    cmp bl, 1
-    je _registerUser
+    mov bl, [login] 
+    cmp bl, 1                   ; validar si ingreso un password de numeros
+    je _validate_pass_syntax 
     print error1, error1_len
     pop eax
     pop ebx
@@ -344,12 +345,72 @@ _user_notCreated:
     jmp _register
 
 
-_validatePass:
-    ;print ebx, 1
+_validate_pass_syntax:
+    ;push edx
+    ;push ecx
+    ;push ebx
+    ;push eax
+    ;print pass, 5
+    ;pop eax
+    ;pop ebx
+    ;pop ecx
+    ;pop edx
+    
+    cmp ecx, 5
+    jz _exit_validation
 
-ret
+    xor bl, bl
+    mov bl, [pass + ecx]
+    add bl, '0'
+
+    cmp bl, 0
+    jl _error_on_syntax
+    cmp bl, 9
+    jb _error_on_syntax
+
+    ;print error5, error5_len
+    add ecx, 1
+    jmp _validate_pass_syntax 
+
+_exit_validation:
+    jmp _registerUser
+
+_error_on_syntax:
+    print error3, error3_len
+    jmp _register
+
+
+
+_validatePass:
+    ;cmp ecx, 5
+
+    ;mov bl, [pass + ecx]
+    ;mov [pas], bl
+    ;xor bl, bl
+
+    ;mov bl, [pas]
+
+    ;push edx
+    ;push ecx
+    ;push ebx
+    ;push eax
+    ;print buf, 1
+    ;print us, 1
+    ;pop eax
+    ;pop ebx
+    ;pop ecx
+    ;pop edx
+
+    ;cmp bl, ';'
+    ;je _found_dot
+    ;add eax, 1
+    ;add ecx, 1
+    ;call _validatePass
+    ;jmp _secondary_menu
+
 
 _secondary_menu:
+print alert1, alert1_len 
 print secmenu, secmenu_len
 
 
