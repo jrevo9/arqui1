@@ -2,7 +2,7 @@
 ;200915030
 section .data
 
-header_txt: db 10,"Ingrese Opción",10,13,
+header_txt: db 10,"Ingrese Opción:",10,13,
                 db 10,"1. Inicio de Sesión",10,13
                 db    "2. Registrar Usuario",10,13,0
                 db    "3. Salir",10,13,0
@@ -13,7 +13,13 @@ userTXT_len equ $ - userTXT
 passTXT db "Contraseña: "
 passTXT_len equ $ - passTXT
 
-secmenu db "Menu Secundario ",10,13,10,13
+secmenu db "Menu Secundario ",10,13,
+                db 10,"1. Ingresar Funcion",10,13
+                db    "2. Imprimir Funcion Ingresada",10,13,0
+                db    "3. Derivada de la Funcion",10,13,0
+                db    "4. Integral de la Funcion",10,13,0
+                db    "5. Encontrar ceros (Newton)",10,13,0
+                db    "6. Salir",10,13,0
 secmenu_len equ $ - secmenu
 
 path db "users.txt",0
@@ -435,8 +441,28 @@ _wrong_pass:
     jmp _login
 
 _secondary_menu:
-print alert1, alert1_len 
-print secmenu, secmenu_len
+    print alert1, alert1_len 
+    print secmenu, secmenu_len
+    
+    ; Leer input del usuario
+    read userInput, 2
+
+    mov dl, byte [userInput]
+    cmp dl, '1'
+    ;jz  _login
+    cmp dl, '2'
+    ;jz  _register
+    cmp dl, '3'
+    jz  _login
+    cmp dl, '4'
+    ;jz  _register
+    cmp dl, '5'
+    ;jz  _exit
+    cmp dl, '6'
+    jz  _initApp
+
+    call _secondary_menu
+
 
 
 _exit:  
