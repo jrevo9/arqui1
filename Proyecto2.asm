@@ -484,7 +484,7 @@ _secondary_menu:
     cmp dl, '2'
     jz  _function_requested
     cmp dl, '3'
-    ;jz  _login
+    jz  _derivate_requested
     cmp dl, '4'
     ;jz  _register
     cmp dl, '5'
@@ -557,7 +557,7 @@ _get_function:
     mov bl, 0x1
     mov [_eof],bl
 
-ret
+jmp _secondary_menu
 
 _print_function:
     
@@ -624,6 +624,69 @@ end_print:
 
 jmp _secondary_menu
 
+_print_derivate:
+    xor ebx,ebx
+    mov bl, byte [sx2]
+    cmp bl, [dash]
+    jnz write_x2_d
+    push eax
+    print sx2,1
+    pop eax
+
+    write_x2_d:
+    mov eax, [vx2]
+    cmp eax, 0x0
+    jz write_x1_d 
+    mov ecx, 0x2
+    mul ecx
+    call _print_number
+    print x1_txt,3
+    call print_space
+
+    write_x3_d:
+    mov eax, [vx3]
+    cmp eax, 0x0
+    jz write_x2_d
+    push eax
+    print sx3,1
+    pop eax
+    mov ecx, 0x3
+    mul ecx
+    call _print_number
+    print x2_txt,4
+    call print_space
+
+    write_x4_d:
+    mov eax, [vx4]
+    cmp eax, 0x0
+    jz  write_x3_d
+    push eax
+    print sx4,1
+    pop eax
+    mov ecx, 0x4
+    mul ecx
+    call _print_number
+    print x3_txt,4
+    call print_space
+
+    write_x1_d: 
+    mov eax, [vx1]
+    cmp eax, 0x0
+    jz end_print_d
+    push eax
+    print sx1,1
+    pop eax
+    call _print_number
+    call print_space
+
+    
+
+    end_print_d:
+
+    call _print_ln
+
+jmp _secondary_menu
+
 
 _function_requested:
     xor ecx, ecx
@@ -638,7 +701,7 @@ _derivate_requested:
     mov cl, byte [_eof]
     cmp cl, 0x0
     jz _no_function_entered
-    jmp _print_function
+    jmp _print_derivate
 
      
 
