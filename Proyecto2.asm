@@ -486,7 +486,7 @@ _secondary_menu:
     cmp dl, '3'
     jz  _derivate_requested
     cmp dl, '4'
-    ;jz  _register
+    jz  _integrate_requested
     cmp dl, '5'
     ;jz  _exit
     cmp dl, '6'
@@ -497,7 +497,9 @@ _secondary_menu:
 _get_function:
        
     call _print_msg1 
-    print x1_txt, 3
+    print x1_txt, 1
+    call print_space
+    call print_space
     call print_space
     call _read_input_number
     mov [vx1], eax
@@ -688,6 +690,60 @@ _print_derivate:
 jmp _secondary_menu
 
 
+_print_integrate:
+
+    xor eax, eax
+    xor ebx, ebx
+    xor ecx, ecx
+    xor edx, edx
+
+    mov eax, [vx0]
+    cmp eax, 0x0
+    jz  print_x1
+    push eax
+    push edx
+    print sx0, 1
+    pop edx
+    pop eax
+
+    call _print_number
+
+    call print_space
+    print x1_txt,3
+    
+
+    print_x1:
+    mov eax, [vx1]
+    cmp eax, 0x0
+    jz end_print_integrate
+    push eax
+    print sx1, 1
+    pop eax
+    mov eax, [vx1]
+    mov ecx, 0x2
+    div ecx
+
+    call _print_number
+
+    cmp edx,0x0
+    jz no_dec_x1
+    mov eax, edx
+    mov ebx, 0x3E8
+    mul ebx
+    div ecx
+    print dot, 1
+    no_dec_x1:
+    call _print_number
+    print x2_txt,4
+
+    end_print_integrate:
+
+    print plus, 1
+    print x_txt,2
+    call _print_ln
+
+jmp _secondary_menu
+
 _function_requested:
     xor ecx, ecx
     mov cl, byte [_eof]
@@ -703,6 +759,12 @@ _derivate_requested:
     jz _no_function_entered
     jmp _print_derivate
 
+_integrate_requested:
+    xor ecx, ecx
+    mov cl, byte [_eof]
+    cmp cl, 0x0
+    jz _no_function_entered
+    jmp _print_integrate
      
 
 _no_function_entered:
@@ -726,7 +788,7 @@ _print_number:
     push edx
     call _print_number
     pop edx
-    add edx, 0x30
+    add edx, '0'
     mov [userInput], edx
     call _print_userInput
 zero:       
